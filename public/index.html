@@ -5,6 +5,10 @@
   <title>NameHY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Preload logos to avoid first-load flicker -->
+  <link rel="preload" href="/public/namehy.png?v=1" as="image">
+  <link rel="preload" href="/public/namehylight.png?v=1" as="image">
+
   <style>
     body {
       font-family: system-ui, Arial, sans-serif;
@@ -139,13 +143,13 @@
   </style>
 </head>
 
-<body class="dark">
+<body>
 
   <div class="card">
 
     <!-- LOGO + SLOGAN -->
     <div class="logo">
-      <img id="logo" src="/public/namehylight.png?v=1" alt="NameHY">
+      <img id="logo" alt="NameHY">
       <div class="slogan">
         The place of Hytale Usernames and Skins
       </div>
@@ -198,7 +202,9 @@
       setMode(body.className === "dark" ? "light" : "dark");
     };
 
-    setMode(localStorage.getItem("theme") || "dark");
+    // 🔥 FIX: sync theme + logo on first load
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    setMode(savedTheme);
 
     function setProgress(p) {
       fill.style.width = p + "%";
