@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_file
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import time
@@ -11,7 +11,7 @@ import os
 # ------------------------
 # APP SETUP
 # ------------------------
-app = Flask(__name__, static_folder="public")
+app = Flask(__name__)
 
 limiter = Limiter(
     get_remote_address,
@@ -22,14 +22,14 @@ limiter = Limiter(
 # ------------------------
 # IN-MEMORY CACHE
 # ------------------------
-cache = {}      # name -> { available, checkedAt }
-inflight = {}   # name -> bool
+cache = {}
+inflight = {}
 lock = Lock()
 
 # ------------------------
 # DATABASE (SEARCH COUNTER)
 # ------------------------
-DB_PATH = "database/stats.json"
+DB_PATH = os.path.join(os.getcwd(), "database", "stats.json")
 
 def load_stats():
     if not os.path.exists(DB_PATH):
@@ -51,14 +51,7 @@ def valid_name(name: str) -> bool:
     return re.fullmatch(r"[a-z0-9_]{3,16}", name) is not None
 
 def check_availability_somehow(name: str):
-    """
-    PLACEHOLDER.
-    Replace ONLY with an official / allowed check.
-    Return:
-      True  -> available
-      False -> taken
-      None  -> unknown
-    """
+    # placeholder
     return None
 
 # ------------------------
@@ -75,7 +68,7 @@ def check_name():
     if not valid_name(name):
         return jsonify(error="Invalid username format"), 400
 
-    # ---- update monthly search counter ----
+    # update monthly searches
     with lock:
         stats = load_stats()
         current_month = datetime.utcnow().strftime("%Y-%m")
@@ -87,7 +80,6 @@ def check_name():
         stats["count"] += 1
         save_stats(stats)
 
-    # ---- return cached result instantly ----
     if name in cache:
         return jsonify({
             "name": name,
@@ -95,7 +87,6 @@ def check_name():
             "cached": True
         })
 
-    # ---- prevent duplicate inflight checks ----
     with lock:
         if inflight.get(name):
             while inflight.get(name):
@@ -109,10 +100,9 @@ def check_name():
         inflight[name] = True
 
     try:
-        time.sleep(1)  # intentional delay
+        time.sleep(1)
 
         result = check_availability_somehow(name)
-
         payload = {
             "available": result,
             "checkedAt": datetime.utcnow().isoformat() + "Z"
@@ -136,15 +126,11 @@ def searches():
     return jsonify({"count": stats["count"]})
 
 # ------------------------
-# FRONTEND ROUTES (FIXED)
+# FRONTEND (ABSOLUTE PATH)
 # ------------------------
 @app.route("/")
 def index():
-    return send_from_directory(app.static_folder, "index.html")
-
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory(app.static_folder, path)
+    return send_file(os.path.join(os.getcwd(), "public", "index.html"))
 
 # ------------------------
 # START SERVER (RENDER SAFE)
