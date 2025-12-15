@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NameHY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: url("background.png") center / cover no-repeat fixed;
+    }
+
+    body.dark { color: #ffffff; }
+    body.light { color: #000000; }
+
+    /* MAIN CARD */
+    .card {
+      max-width: 520px;           /* BIGGER */
+      margin: 80px auto;
+      padding: 28px;              /* BIGGER */
+      border-radius: 16px;
+    }
+
+    body.dark .card {
+      background: rgba(20, 20, 24, 0.9);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    body.light .card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+
+    /* LOGO + SLOGAN */
+    .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .logo img {
+      height: 58px;
+    }
+
+    .slogan {
+      font-size: 14px;
+      opacity: 0.75;
+      text-align: center;
+    }
+
+    .muted {
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 14px;
+    }
+
+    /* INPUT */
+    input {
+      width: 100%;
+      padding: 16px;              /* BIGGER */
+      font-size: 18px;            /* BIGGER */
+      border-radius: 10px;
+      border: 1px solid #888;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    body.dark input {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    body.light input {
+      background: rgba(0,0,0,0.06);
+      color: #000;
+      border-color: rgba(0,0,0,0.25);
+    }
+
+    /* BUTTON */
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 16px;              /* BIGGER */
+      font-size: 17px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    body.dark button {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    body.light button {
+      background: #000000;
+      color: #ffffff;
+    }
+
+    /* PROGRESS BAR */
+    .bar {
+      height: 8px;
+      background: rgba(0,0,0,0.15);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .fill {
+      height: 100%;
+      width: 0%;
+      background: currentColor;
+      transition: width 0.1s linear;
+    }
+
+    .status {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      font-size: 15px;
+    }
+
+    /* TOGGLE */
+    .toggle {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body class="dark">
+
+  <div class="card">
+
+    <!-- LOGO + SLOGAN -->
+    <div class="logo">
+      <img id="logo" src="namehylight.png" alt="NameHY">
+      <div class="slogan">
+        The place of Hytale Usernames and Skins
+      </div>
+    </div>
+
+    <!-- SEARCH COUNTER -->
+    <div class="muted" id="searches">Searches: 0 / month</div>
+
+    <!-- INPUT -->
+    <input id="username" placeholder="Enter username" autocomplete="off">
+    <button id="check">Check</button>
+
+    <!-- PROGRESS -->
+    <div class="bar">
+      <div class="fill" id="fill"></div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="status" id="output"></div>
+
+    <!-- MODE TOGGLE -->
+    <div class="toggle" id="toggle">Switch to Light Mode</div>
+
+  </div>
+
+  <script>
+    const body = document.body;
+    const logo = document.getElementById("logo");
+    const toggle = document.getElementById("toggle");
+
+    const input = document.getElementById("username");
+    const output = document.getElementById("output");
+    const fill = document.getElementById("fill");
+    const searchesEl = document.getElementById("searches");
+
+    function setMode(mode) {
+      body.className = mode;
+      localStorage.setItem("theme", mode);
+
+      if (mode === "dark") {
+        logo.src = "namehylight.png";
+        toggle.textContent = "Switch to Light Mode";
+      } else {
+        logo.src = "namehy.png";
+        toggle.textContent = "Switch to Dark Mode";
+      }
+    }
+
+    toggle.onclick = () => {
+      setMode(body.className === "dark" ? "light" : "dark");
+    };
+
+    setMode(localStorage.getItem("theme") || "dark");
+
+    function setProgress(p) {
+      fill.style.width = p + "%";
+    }
+
+    async function loadSearches() {
+      const r = await fetch("/api/searches");
+      const data = await r.json();
+      searchesEl.textContent =
+        `Searches: ${data.count.toLocaleString()} / month`;
+    }
+
+    loadSearches();
+
+    document.getElementById("check").onclick = async () => {
+      const name = input.value.trim();
+      if (!name) return;
+
+      output.textContent = "Checking availability…";
+      setProgress(0);
+
+      let p = 0;
+      const t = setInterval(() => {
+        p += 20;
+        setProgress(Math.min(p, 100));
+      }, 100);
+
+      try {
+        const res = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name })
+        });
+
+        const data = await res.json();
+
+        const status =
+          data.available === true ? "AVAILABLE ✅" :
+          data.available === false ? "TAKEN ❌" :
+          "UNCONFIRMED ⚠️";
+
+        output.textContent =
+          `Username: ${data.name}\n` +
+          `Status: ${status}\n` +
+          `Checked: ${data.checkedAt}`;
+
+        setProgress(100);
+        loadSearches();
+      } catch {
+        output.textContent = "Error checking username.";
+      } finally {
+        clearInterval(t);
+      }
+    };
+  </script>
+
+</body>
+</html>
