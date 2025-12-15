@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import time
@@ -126,11 +126,16 @@ def searches():
     return jsonify({"count": stats["count"]})
 
 # ------------------------
-# FRONTEND (ABSOLUTE PATH)
+# FRONTEND
 # ------------------------
 @app.route("/")
 def index():
     return send_file(os.path.join(os.getcwd(), "public", "index.html"))
+
+# serve /public/* files (images, backgrounds, etc.)
+@app.route("/public/<path:filename>")
+def public_files(filename):
+    return send_from_directory("public", filename)
 
 # ------------------------
 # START SERVER (RENDER SAFE)
