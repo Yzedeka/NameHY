@@ -11,7 +11,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      background: url("background.png") center / cover no-repeat fixed;
+      background: url("/public/background.png") center / cover no-repeat fixed;
     }
 
     body.dark { color: #ffffff; }
@@ -19,9 +19,9 @@
 
     /* MAIN CARD */
     .card {
-      max-width: 520px;           /* BIGGER */
+      max-width: 520px;
       margin: 80px auto;
-      padding: 28px;              /* BIGGER */
+      padding: 28px;
       border-radius: 16px;
     }
 
@@ -64,8 +64,8 @@
     /* INPUT */
     input {
       width: 100%;
-      padding: 16px;              /* BIGGER */
-      font-size: 18px;            /* BIGGER */
+      padding: 16px;
+      font-size: 18px;
       border-radius: 10px;
       border: 1px solid #888;
       outline: none;
@@ -88,7 +88,7 @@
     button {
       width: 100%;
       margin-top: 12px;
-      padding: 16px;              /* BIGGER */
+      padding: 16px;
       font-size: 17px;
       border-radius: 10px;
       border: none;
@@ -145,7 +145,7 @@
 
     <!-- LOGO + SLOGAN -->
     <div class="logo">
-      <img id="logo" src="namehylight.png" alt="NameHY">
+      <img id="logo" src="/public/namehylight.png" alt="NameHY">
       <div class="slogan">
         The place of Hytale Usernames and Skins
       </div>
@@ -186,10 +186,10 @@
       localStorage.setItem("theme", mode);
 
       if (mode === "dark") {
-        logo.src = "namehylight.png";
+        logo.src = "/public/namehylight.png";
         toggle.textContent = "Switch to Light Mode";
       } else {
-        logo.src = "namehy.png";
+        logo.src = "/public/namehy.png";
         toggle.textContent = "Switch to Dark Mode";
       }
     }
