@@ -11,7 +11,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      background: url("/public/background.png") center / cover no-repeat fixed;
+      background: url("/public/background.png?v=1") center / cover no-repeat fixed;
     }
 
     body.dark { color: #ffffff; }
@@ -145,7 +145,7 @@
 
     <!-- LOGO + SLOGAN -->
     <div class="logo">
-      <img id="logo" src="/public/namehylight.png" alt="NameHY">
+      <img id="logo" src="/public/namehylight.png?v=1" alt="NameHY">
       <div class="slogan">
         The place of Hytale Usernames and Skins
       </div>
@@ -186,10 +186,10 @@
       localStorage.setItem("theme", mode);
 
       if (mode === "dark") {
-        logo.src = "/public/namehylight.png";
+        logo.src = "/public/namehylight.png?v=1";
         toggle.textContent = "Switch to Light Mode";
       } else {
-        logo.src = "/public/namehy.png";
+        logo.src = "/public/namehy.png?v=1";
         toggle.textContent = "Switch to Dark Mode";
       }
     }
