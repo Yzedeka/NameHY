@@ -5,7 +5,7 @@
   <title>NameHY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Preload logos to avoid first-load flicker -->
+  <!-- Preload logos -->
   <link rel="preload" href="/public/namehy.png?v=1" as="image">
   <link rel="preload" href="/public/namehylight.png?v=1" as="image">
 
@@ -16,12 +16,19 @@
       padding: 0;
       min-height: 100vh;
       background: url("/public/background.png?v=1") center / cover no-repeat fixed;
+
+      /* hide until ready */
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    body.ready {
+      opacity: 1;
     }
 
     body.dark { color: #ffffff; }
     body.light { color: #000000; }
 
-    /* MAIN CARD */
     .card {
       max-width: 520px;
       margin: 80px auto;
@@ -39,7 +46,6 @@
       border: 1px solid rgba(0,0,0,0.12);
     }
 
-    /* LOGO + SLOGAN */
     .logo {
       display: flex;
       flex-direction: column;
@@ -65,7 +71,6 @@
       margin-bottom: 14px;
     }
 
-    /* INPUT */
     input {
       width: 100%;
       padding: 16px;
@@ -88,7 +93,6 @@
       border-color: rgba(0,0,0,0.25);
     }
 
-    /* BUTTON */
     button {
       width: 100%;
       margin-top: 12px;
@@ -110,7 +114,6 @@
       color: #ffffff;
     }
 
-    /* PROGRESS BAR */
     .bar {
       height: 8px;
       background: rgba(0,0,0,0.15);
@@ -132,7 +135,6 @@
       font-size: 15px;
     }
 
-    /* TOGGLE */
     .toggle {
       text-align: center;
       margin-top: 16px;
@@ -147,7 +149,6 @@
 
   <div class="card">
 
-    <!-- LOGO + SLOGAN -->
     <div class="logo">
       <img id="logo" alt="NameHY">
       <div class="slogan">
@@ -155,22 +156,17 @@
       </div>
     </div>
 
-    <!-- SEARCH COUNTER -->
     <div class="muted" id="searches">Searches: 0 / month</div>
 
-    <!-- INPUT -->
     <input id="username" placeholder="Enter username" autocomplete="off">
     <button id="check">Check</button>
 
-    <!-- PROGRESS -->
     <div class="bar">
       <div class="fill" id="fill"></div>
     </div>
 
-    <!-- RESULT -->
     <div class="status" id="output"></div>
 
-    <!-- MODE TOGGLE -->
     <div class="toggle" id="toggle">Switch to Light Mode</div>
 
   </div>
@@ -202,13 +198,13 @@
       setMode(body.className === "dark" ? "light" : "dark");
     };
 
-    // 🔥 FIX: sync theme + logo on first load
     const savedTheme = localStorage.getItem("theme") || "dark";
     setMode(savedTheme);
 
-    function setProgress(p) {
-      fill.style.width = p + "%";
-    }
+    // 🔥 wait for logo to load before showing page
+    logo.onload = () => {
+      body.classList.add("ready");
+    };
 
     async function loadSearches() {
       const r = await fetch("/api/searches");
@@ -224,12 +220,12 @@
       if (!name) return;
 
       output.textContent = "Checking availability…";
-      setProgress(0);
+      fill.style.width = "0%";
 
       let p = 0;
       const t = setInterval(() => {
         p += 20;
-        setProgress(Math.min(p, 100));
+        fill.style.width = Math.min(p, 100) + "%";
       }, 100);
 
       try {
@@ -251,7 +247,7 @@
           `Status: ${status}\n` +
           `Checked: ${data.checkedAt}`;
 
-        setProgress(100);
+        fill.style.width = "100%";
         loadSearches();
       } catch {
         output.textContent = "Error checking username.";
