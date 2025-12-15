@@ -10,11 +10,11 @@ import os
 
 app = Flask(__name__, static_folder="public")
 
-# --- rate limiting (120 checks per minute per IP)
+# --- rate limiting (60 checks per minute per IP)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["120 per minute"]
+    default_limits=["1 per second"]
 )
 
 # --- in-memory cache (swap to Redis later)
@@ -149,5 +149,8 @@ def static_files(path):
     return send_from_directory("public", path)
 
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True, port=3000)
+    port = int(os.environ.get("PORT", 3000))
+    app.run(host="0.0.0.0", port=port, debug=False)
